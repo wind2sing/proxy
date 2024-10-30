@@ -15,7 +15,6 @@ COPY proxy.js .
 
 # 设置默认环境变量
 ENV PORT=3000 \
-    CACHE_TIME=300 \
     NODE_ENV=production
 
 # 暴露端口

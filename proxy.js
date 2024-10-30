@@ -9,18 +9,20 @@ const CONFIG = {
   userAgent:
     process.env.USER_AGENT ||
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
-  cookieArray: process.env.COOKIEARRAY
-    ? JSON.parse(process.env.COOKIEARRAY)
-    : [],
 };
 
-// 解析 cookie 数组并创建域名到 cookie 的映射
+// 从环境变量中获取所有 cookie 配置
 const cookieMap = new Map(
-  CONFIG.cookieArray.map((item) => {
-    const [domain, cookie] = item.split("@");
-    return [domain, cookie];
-  })
+  Object.entries(process.env)
+    .filter(([key]) => key.startsWith("PROXYCOOKIE"))
+    .map(([_, value]) => {
+      const [domain, ...cookieParts] = value.split("@");
+      return [domain.trim(), cookieParts.join("@").trim()]; // 重新组合可能包含 @ 的 cookie 值
+    })
 );
+
+// 调试输出配置的域名
+console.log("Configured domains:", Array.from(cookieMap.keys()));
 
 // 获取指定域名的 cookie
 function getCookieForDomain(hostname) {
@@ -124,10 +126,7 @@ const server = http.createServer((req, res) => {
 
 // 启动服务器
 server.listen(CONFIG.port, () => {
-  console.log(
-    `Universal proxy server running at http://localhost:${CONFIG.port}`
-  );
-  console.log("Configured domains with cookies:", Array.from(cookieMap.keys()));
+  console.log(`Proxy server running at http://localhost:${CONFIG.port}`);
 });
 
 // 错误处理
